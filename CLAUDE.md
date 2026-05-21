@@ -38,5 +38,5 @@ Next.js 16.2.6, React 19.2.4, TypeScript 5, Tailwind CSS 4 (PostCSS plugin).
 **Screen dispatch** — `QuestionType/ScreenRenderer.tsx` is the type-switch dispatcher. `page.tsx` handles data-fetching/layout; `ScreenRenderer` maps `QuestionConfig.type` → the right component. New question types get a component in `QuestionType/` and a branch in `ScreenRenderer`.
 
 **Server vs client boundary:**
-- `[funnelId]/page.tsx` — async server component, reads `params` as a Promise
-- `email/page.tsx`, `paywall/page.tsx` — `"use client"`, unwrap `params` with `use()`
+- `[funnelId]/page.tsx`, `[funnelId]/[screenIndex]/page.tsx`, `[funnelId]/paywall/page.tsx` — async server components, read `params` as a Promise, read cookies server-side
+- `QuestionType/EmailForm.tsx` — `"use client"`, handles form state and calls the `saveEmail` server action

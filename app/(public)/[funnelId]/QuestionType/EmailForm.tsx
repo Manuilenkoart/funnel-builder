@@ -30,7 +30,11 @@ export default function EmailForm({ screen, nextHref }: EmailFormProps) {
       setError('Please enter a valid email address');
       return;
     }
-    await saveEmail(email);
+    const result = await saveEmail(email);
+    if (!result.ok) {
+      setError('Something went wrong. Please try again.');
+      return;
+    }
     router.push(nextHref);
   };
 

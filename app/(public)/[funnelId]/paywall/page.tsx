@@ -18,7 +18,11 @@ export default async function FunnelPaywallPage({
   const cookieStore = await cookies();
   const userId = cookieStore.get('userId')?.value;
   if (userId) {
-    recordPageView(userId, funnelId, 'paywall').catch(console.error);
+    try {
+      await recordPageView(userId, funnelId, 'paywall');
+    } catch (err) {
+      console.error('[tracking] recordPageView failed:', err);
+    }
   }
 
   return (
