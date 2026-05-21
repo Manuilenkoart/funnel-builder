@@ -49,7 +49,7 @@ export default async function FunnelPaywallPage({
               </div>
             </div>
             <Link
-              href="/dashboard"
+              href="#"
               className="mt-6 block w-full py-2.5 text-center rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold transition-all duration-200"
             >
               Get Started
@@ -69,7 +69,7 @@ export default async function FunnelPaywallPage({
               </div>
             </div>
             <Link
-              href="/dashboard"
+              href="#"
               className="mt-6 block w-full py-2.5 text-center rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold transition-all duration-200 shadow-md"
             >
               Get Premium

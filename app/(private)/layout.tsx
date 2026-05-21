@@ -1,15 +1,17 @@
-export default function PrivateLayout({
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+
+import { AUTH_COOKIE, isAuthValue } from '@/app/lib/auth';
+
+export default async function PrivateLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <div className="private-layout">
-      {/* 
-        Add authentication checks here later.
-        Add private navigation (sidebar/header) here.
-      */}
-      {children}
-    </div>
-  );
+  const cookieStore = await cookies();
+  if (!isAuthValue(cookieStore.get(AUTH_COOKIE)?.value)) {
+    redirect('/login');
+  }
+
+  return <div className="private-layout">{children}</div>;
 }
