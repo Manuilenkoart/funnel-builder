@@ -1,24 +1,24 @@
-'use client';
-
+import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { use } from 'react';
+import { notFound } from 'next/navigation';
 
 import { funnelsConfig } from '@/app/config/funnels';
+import { recordPageView } from '@/app/lib/tracking';
 
-export default function FunnelPaywallPage({
+export default async function FunnelPaywallPage({
   params,
 }: {
   params: Promise<{ funnelId: string }>;
 }) {
-  const { funnelId } = use(params);
+  const { funnelId } = await params;
   const config = funnelsConfig[funnelId as keyof typeof funnelsConfig];
 
-  if (!config) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">
-        <p>Funnel not found</p>
-      </div>
-    );
+  if (!config) notFound();
+
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+  if (userId) {
+    recordPageView(userId, funnelId, 'paywall').catch(console.error);
   }
 
   return (
@@ -34,13 +34,11 @@ export default function FunnelPaywallPage({
           Get lifetime access to the private dashboard and all custom premium tools.
         </p>
 
-        {/* Pricing Cards */}
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Option 1 */}
           <div className="relative p-6 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/50 hover:bg-white/10 transition-all duration-200 flex flex-col justify-between">
             <div>
               <h3 className="text-lg font-bold">Standard Plan</h3>
-              <p className="mt-1 text-xs text-slate-400">Basic features & setup</p>
+              <p className="mt-1 text-xs text-slate-400">Basic features &amp; setup</p>
               <div className="mt-4 flex items-baseline">
                 <span className="text-3xl font-extrabold">$19</span>
                 <span className="ml-1 text-sm text-slate-400">/one-time</span>
@@ -54,14 +52,13 @@ export default function FunnelPaywallPage({
             </Link>
           </div>
 
-          {/* Option 2 (Popular) */}
           <div className="relative p-6 rounded-xl bg-indigo-600/20 border-2 border-indigo-500 hover:bg-indigo-600/30 transition-all duration-200 flex flex-col justify-between shadow-lg shadow-indigo-500/10">
             <span className="absolute -top-3 right-4 px-2 py-0.5 rounded-full bg-indigo-500 text-[10px] font-bold uppercase tracking-wider">
               Popular
             </span>
             <div>
               <h3 className="text-lg font-bold">Premium Plan</h3>
-              <p className="mt-1 text-xs text-indigo-200">Full access & updates</p>
+              <p className="mt-1 text-xs text-indigo-200">Full access &amp; updates</p>
               <div className="mt-4 flex items-baseline">
                 <span className="text-3xl font-extrabold">$49</span>
                 <span className="ml-1 text-sm text-indigo-200">/one-time</span>
@@ -78,7 +75,7 @@ export default function FunnelPaywallPage({
 
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-400">
-            30-day money back guarantee. Safe & secure payment.
+            30-day money back guarantee. Safe &amp; secure payment.
           </p>
         </div>
       </div>

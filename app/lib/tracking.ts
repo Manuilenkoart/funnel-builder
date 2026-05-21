@@ -1,0 +1,26 @@
+import { createServerClient } from './supabase/server';
+
+export async function recordPageView(
+  userId: string,
+  funnelId: string,
+  questionId: string
+): Promise<void> {
+  const supabase = createServerClient();
+  await supabase
+    .from('users')
+    .upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true });
+  await supabase.from('events').insert({
+    name: 'page_view',
+    funnel_id: funnelId,
+    question_id: questionId,
+    user_id: userId,
+  });
+}
+
+export async function updateUserEmail(
+  userId: string,
+  email: string
+): Promise<void> {
+  const supabase = createServerClient();
+  await supabase.from('users').update({ email }).eq('id', userId);
+}

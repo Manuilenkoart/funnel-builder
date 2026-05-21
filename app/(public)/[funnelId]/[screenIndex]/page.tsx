@@ -1,8 +1,10 @@
-import { notFound } from "next/navigation";
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
 
-import { funnelsConfig } from "@/app/config/funnels";
+import { funnelsConfig } from '@/app/config/funnels';
+import { recordPageView } from '@/app/lib/tracking';
 
-import ScreenRenderer from "../QuestionType/ScreenRenderer";
+import ScreenRenderer from '../QuestionType/ScreenRenderer';
 
 export default async function FunnelScreenPage({
   params,
@@ -17,6 +19,12 @@ export default async function FunnelScreenPage({
   const screenIndex = parseInt(screenIndexStr, 10);
   if (isNaN(screenIndex) || screenIndex < 0 || screenIndex >= config.screens.length) {
     notFound();
+  }
+
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+  if (userId) {
+    recordPageView(userId, funnelId, screenIndexStr).catch(console.error);
   }
 
   const screen = config.screens[screenIndex];
