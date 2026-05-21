@@ -4,10 +4,18 @@ import { cookies } from 'next/headers';
 
 import { updateUserEmail } from '@/app/lib/tracking';
 
-export async function saveEmail(email: string): Promise<void> {
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+export async function saveEmail(email: string): Promise<{ ok: boolean; error?: string }> {
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { ok: false, error: 'Invalid email' };
+  }
   const cookieStore = await cookies();
   const userId = cookieStore.get('userId')?.value;
-  if (!userId) return;
-  await updateUserEmail(userId, email);
+  if (!userId) return { ok: false, error: 'No user session' };
+  try {
+    await updateUserEmail(userId, email);
+    return { ok: true };
+  } catch (err) {
+    console.error('[tracking] saveEmail failed:', err);
+    return { ok: false, error: 'Failed to save email' };
+  }
 }

@@ -24,7 +24,11 @@ export default async function FunnelScreenPage({
   const cookieStore = await cookies();
   const userId = cookieStore.get('userId')?.value;
   if (userId) {
-    recordPageView(userId, funnelId, screenIndexStr).catch(console.error);
+    try {
+      await recordPageView(userId, funnelId, screenIndexStr);
+    } catch (err) {
+      console.error('[tracking] recordPageView failed:', err);
+    }
   }
 
   const screen = config.screens[screenIndex];
