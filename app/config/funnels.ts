@@ -1,7 +1,20 @@
-import { FunnelConfig, QuestionType } from "../types/funnel";
+import { EmailQuestionConfig, FunnelConfig, QuestionType } from "../types/funnel";
 
 const TITLE_CSS = "mt-14 text-2xl leading-[1.2]";
 export type QuizId = "quiz-1" | "quiz-2";
+
+const EMAIL_SCREEN: EmailQuestionConfig = {
+  title: {
+    text: "Where should we send your results?",
+    tailwindcss: "mt-4 text-3xl font-extrabold tracking-tight",
+  },
+  type: QuestionType.email,
+  componentProps: {
+    subtitle: "Enter your email to receive your personalized roadmap and continue.",
+    placeholder: "name@example.com",
+    buttonText: "Continue to Results",
+  },
+};
 
 export const funnelsConfig: Record<QuizId, FunnelConfig> = {
   "quiz-1": {
@@ -21,19 +34,7 @@ export const funnelsConfig: Record<QuizId, FunnelConfig> = {
           ],
         },
       },
-      {
-        title: {
-          text: "Where should we send your results?",
-          tailwindcss: "mt-4 text-3xl font-extrabold tracking-tight",
-        },
-        type: QuestionType.email,
-        componentProps: {
-          subtitle:
-            "Enter your email to receive your personalized roadmap and continue.",
-          placeholder: "name@example.com",
-          buttonText: "Continue to Results",
-        },
-      },
+      EMAIL_SCREEN,
     ],
   },
   "quiz-2": {
@@ -53,19 +54,7 @@ export const funnelsConfig: Record<QuizId, FunnelConfig> = {
           ],
         },
       },
-      {
-        title: {
-          text: "Where should we send your results?",
-          tailwindcss: "mt-4 text-3xl font-extrabold tracking-tight",
-        },
-        type: QuestionType.email,
-        componentProps: {
-          subtitle:
-            "Enter your email to receive your personalized roadmap and continue.",
-          placeholder: "name@example.com",
-          buttonText: "Continue to Results",
-        },
-      },
+      EMAIL_SCREEN,
     ],
   },
 };

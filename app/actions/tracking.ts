@@ -3,9 +3,10 @@
 import { cookies } from 'next/headers';
 
 import { updateUserEmail } from '@/app/lib/tracking';
+import { EMAIL_REGEX } from '@/app/lib/validation';
 
 export async function saveEmail(email: string): Promise<{ ok: boolean; error?: string }> {
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!email || !EMAIL_REGEX.test(email)) {
     return { ok: false, error: 'Invalid email' };
   }
   const cookieStore = await cookies();

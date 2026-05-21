@@ -22,5 +22,6 @@ export async function updateUserEmail(
   email: string
 ): Promise<void> {
   const supabase = createServerClient();
-  await supabase.from('users').update({ email }).eq('id', userId);
+  const { error } = await supabase.from('users').update({ email }).eq('id', userId);
+  if (error) throw error;
 }
