@@ -1,7 +1,8 @@
 'use client';
 
-import { use } from 'react';
 import Link from 'next/link';
+import { use } from 'react';
+
 import { funnelsConfig } from '@/app/config/funnels';
 
 export default function FunnelPaywallPage({

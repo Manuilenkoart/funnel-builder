@@ -1,6 +1,6 @@
-
 export enum QuestionType {
-  rowList = 'rowList',
+  rowList = "rowList",
+  email = "email",
 }
 
 export interface QuestionTitleConfig {
@@ -14,12 +14,21 @@ export interface BaseQuestionConfig {
 
 export interface RowListQuestionConfig extends BaseQuestionConfig {
   type: QuestionType.rowList;
-  componentProps?: {
-    list?: Array<{ id: number | string; text: string }>;
+  componentProps: {
+    list: { text: string }[];
   };
 }
 
-export type QuestionConfig = RowListQuestionConfig;
+export interface EmailQuestionConfig extends BaseQuestionConfig {
+  type: QuestionType.email;
+  componentProps: {
+    placeholder?: string;
+    subtitle?: string;
+    buttonText: string;
+  };
+}
+
+export type QuestionConfig = RowListQuestionConfig | EmailQuestionConfig;
 
 export interface FunnelConfig {
   screens: QuestionConfig[];

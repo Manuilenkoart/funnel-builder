@@ -14,11 +14,24 @@ export const funnelsConfig: Record<QuizId, FunnelConfig> = {
         type: QuestionType.rowList,
         componentProps: {
           list: [
-            { id: 1, text: "18-29" },
-            { id: 2, text: "30-39" },
-            { id: 3, text: "40-49" },
-            { id: 4, text: "50+" },
+            { text: "18-29" },
+            { text: "30-39" },
+            { text: "40-49" },
+            { text: "50+" },
           ],
+        },
+      },
+      {
+        title: {
+          text: "Where should we send your results?",
+          tailwindcss: "mt-4 text-3xl font-extrabold tracking-tight",
+        },
+        type: QuestionType.email,
+        componentProps: {
+          subtitle:
+            "Enter your email to receive your personalized roadmap and continue.",
+          placeholder: "name@example.com",
+          buttonText: "Continue to Results",
         },
       },
     ],
@@ -33,11 +46,24 @@ export const funnelsConfig: Record<QuizId, FunnelConfig> = {
         type: QuestionType.rowList,
         componentProps: {
           list: [
-            { id: 1, text: "Improve writing" },
-            { id: 2, text: "Boost productivity" },
-            { id: 3, text: "Learn new skills" },
-            { id: 4, text: "Other" },
+            { text: "Improve writing" },
+            { text: "Boost productivity" },
+            { text: "Learn new skills" },
+            { text: "Other" },
           ],
+        },
+      },
+      {
+        title: {
+          text: "Where should we send your results?",
+          tailwindcss: "mt-4 text-3xl font-extrabold tracking-tight",
+        },
+        type: QuestionType.email,
+        componentProps: {
+          subtitle:
+            "Enter your email to receive your personalized roadmap and continue.",
+          placeholder: "name@example.com",
+          buttonText: "Continue to Results",
         },
       },
     ],
