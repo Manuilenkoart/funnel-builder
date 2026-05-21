@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 import { funnelsConfig } from '@/app/config/funnels';
-import { recordPageView } from '@/app/lib/tracking';
+import { recordEvent } from '@/app/lib/tracking';
 
 import ScreenRenderer from '../QuestionType/ScreenRenderer';
 
@@ -25,7 +25,7 @@ export default async function FunnelScreenPage({
   const userId = cookieStore.get('userId')?.value;
   if (userId) {
     try {
-      await recordPageView(userId, funnelId, screenIndexStr);
+      await recordEvent(userId, funnelId, 'page_view', screenIndexStr);
     } catch (err) {
       console.error('[tracking] recordPageView failed:', err);
     }

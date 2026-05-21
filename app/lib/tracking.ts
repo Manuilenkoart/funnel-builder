@@ -1,16 +1,17 @@
 import { createServerClient } from './supabase/server';
 
-export async function recordPageView(
+export async function recordEvent(
   userId: string,
   funnelId: string,
-  questionId: string
+  name: 'page_view'| 'buy',
+  questionId: string | null = null
 ): Promise<void> {
   const supabase = createServerClient();
   await supabase
     .from('users')
     .upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true });
   await supabase.from('events').insert({
-    name: 'page_view',
+    name,
     funnel_id: funnelId,
     question_id: questionId,
     user_id: userId,

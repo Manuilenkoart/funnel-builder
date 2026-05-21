@@ -17,13 +17,13 @@ vi.mock('@/app/lib/supabase/server', () => ({
   createServerClient: () => ({ from: mockFrom }),
 }));
 
-import { recordPageView, updateUserEmail } from '@/app/lib/tracking';
+import { recordEvent, updateUserEmail } from '@/app/lib/tracking';
 
 describe('recordPageView', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('upserts the user row', async () => {
-    await recordPageView('user-abc', 'quiz-1', '0');
+    await recordEvent('user-abc', 'quiz-1', 'page_view', '0');
     expect(mockFrom).toHaveBeenCalledWith('users');
     expect(mockUpsert).toHaveBeenCalledWith(
       { id: 'user-abc' },
@@ -32,7 +32,7 @@ describe('recordPageView', () => {
   });
 
   it('inserts a page_view event with correct fields', async () => {
-    await recordPageView('user-abc', 'quiz-1', '0');
+    await recordEvent('user-abc', 'quiz-1', 'page_view', '0');
     expect(mockFrom).toHaveBeenCalledWith('events');
     expect(mockInsert).toHaveBeenCalledWith({
       name: 'page_view',
@@ -43,7 +43,7 @@ describe('recordPageView', () => {
   });
 
   it('records paywall as question_id "paywall"', async () => {
-    await recordPageView('user-abc', 'quiz-1', 'paywall');
+    await recordEvent('user-abc', 'quiz-1', 'page_view', 'paywall');
     expect(mockInsert).toHaveBeenCalledWith(
       expect.objectContaining({ question_id: 'paywall' })
     );

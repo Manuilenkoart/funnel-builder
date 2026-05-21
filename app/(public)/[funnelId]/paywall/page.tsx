@@ -1,9 +1,10 @@
-import { cookies } from 'next/headers';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 
-import { funnelsConfig } from '@/app/config/funnels';
-import { recordPageView } from '@/app/lib/tracking';
+import { funnelsConfig } from "@/app/config/funnels";
+import { recordEvent } from "@/app/lib/tracking";
+
+import BuyButton from "./BuyButton";
 
 export default async function FunnelPaywallPage({
   params,
@@ -16,12 +17,12 @@ export default async function FunnelPaywallPage({
   if (!config) notFound();
 
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
+  const userId = cookieStore.get("userId")?.value;
   if (userId) {
     try {
-      await recordPageView(userId, funnelId, 'paywall');
+      await recordEvent(userId, funnelId, "page_view", "paywall");
     } catch (err) {
-      console.error('[tracking] recordPageView failed:', err);
+      console.error("[tracking] recordPageView failed:", err);
     }
   }
 
@@ -35,25 +36,28 @@ export default async function FunnelPaywallPage({
           Choose Your Plan
         </h1>
         <p className="mt-2 text-sm text-slate-300">
-          Get lifetime access to the private dashboard and all custom premium tools.
+          Get lifetime access to the private dashboard and all custom premium
+          tools.
         </p>
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="relative p-6 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/50 hover:bg-white/10 transition-all duration-200 flex flex-col justify-between">
             <div>
               <h3 className="text-lg font-bold">Standard Plan</h3>
-              <p className="mt-1 text-xs text-slate-400">Basic features &amp; setup</p>
+              <p className="mt-1 text-xs text-slate-400">
+                Basic features &amp; setup
+              </p>
               <div className="mt-4 flex items-baseline">
                 <span className="text-3xl font-extrabold">$19</span>
                 <span className="ml-1 text-sm text-slate-400">/one-time</span>
               </div>
             </div>
-            <Link
-              href="#"
-              className="mt-6 block w-full py-2.5 text-center rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold transition-all duration-200"
+            <BuyButton
+              funnelId={funnelId}
+              className="mt-6 block w-full py-2.5 text-center rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Get Started
-            </Link>
+              Buy
+            </BuyButton>
           </div>
 
           <div className="relative p-6 rounded-xl bg-indigo-600/20 border-2 border-indigo-500 hover:bg-indigo-600/30 transition-all duration-200 flex flex-col justify-between shadow-lg shadow-indigo-500/10">
@@ -62,18 +66,20 @@ export default async function FunnelPaywallPage({
             </span>
             <div>
               <h3 className="text-lg font-bold">Premium Plan</h3>
-              <p className="mt-1 text-xs text-indigo-200">Full access &amp; updates</p>
+              <p className="mt-1 text-xs text-indigo-200">
+                Full access &amp; updates
+              </p>
               <div className="mt-4 flex items-baseline">
                 <span className="text-3xl font-extrabold">$49</span>
                 <span className="ml-1 text-sm text-indigo-200">/one-time</span>
               </div>
             </div>
-            <Link
-              href="#"
-              className="mt-6 block w-full py-2.5 text-center rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold transition-all duration-200 shadow-md"
+            <BuyButton
+              funnelId={funnelId}
+              className="mt-6 block w-full py-2.5 text-center rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold transition-all duration-200 shadow-md cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Get Premium
-            </Link>
+              Buy
+            </BuyButton>
           </div>
         </div>
 

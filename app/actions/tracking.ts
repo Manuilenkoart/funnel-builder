@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 
-import { updateUserEmail } from '@/app/lib/tracking';
+import { recordEvent, updateUserEmail } from '@/app/lib/tracking';
 import { EMAIL_REGEX } from '@/app/lib/validation';
 
 export async function saveEmail(email: string): Promise<{ ok: boolean; error?: string }> {
@@ -18,5 +18,20 @@ export async function saveEmail(email: string): Promise<{ ok: boolean; error?: s
   } catch (err) {
     console.error('[tracking] saveEmail failed:', err);
     return { ok: false, error: 'Failed to save email' };
+  }
+}
+
+export async function recordBuyEvent(
+  funnelId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+  if (!userId) return { ok: false, error: 'No user session' };
+  try {
+    await recordEvent(userId, funnelId, 'buy', 'paywall');
+    return { ok: true };
+  } catch (err) {
+    console.error('[tracking] recordBuyEvent failed:', err);
+    return { ok: false, error: 'Failed to record buy event' };
   }
 }
