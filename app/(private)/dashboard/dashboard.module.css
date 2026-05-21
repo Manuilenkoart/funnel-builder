@@ -1,0 +1,324 @@
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Caveat:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+.wf {
+  --paper: #f6f1e7;
+  --paper-2: #efe7d6;
+  --ink: #1f1b16;
+  --ink-2: #4a4339;
+  --muted: #8a8275;
+  --faint: #d9d2c1;
+  --line: #2b2620;
+  --accent: oklch(0.64 0.18 38);
+
+  font-family: 'Kalam', cursive;
+  color: var(--ink);
+  background: var(--paper);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(0,0,0,0.025) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 78% 32%, rgba(0,0,0,0.02) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 40% 70%, rgba(0,0,0,0.02) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 88% 92%, rgba(0,0,0,0.02) 0 1px, transparent 1.5px);
+}
+
+.scribe { font-family: 'Caveat', cursive; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 24px 32px 16px;
+  border-bottom: 1.5px solid var(--line);
+  position: relative;
+}
+.header::after {
+  content: "";
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: -3px;
+  height: 1px;
+  background: var(--ink);
+  opacity: 0.4;
+}
+.title {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.chrome {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  padding: 5px 12px;
+  font-size: 13px;
+  background: var(--paper);
+  font-family: 'Kalam', cursive;
+}
+
+.kpis {
+  display: flex;
+  gap: 16px;
+  padding: 18px 32px 6px;
+}
+
+.card {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  padding: 14px 16px;
+  position: relative;
+}
+.cardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  font-family: 'Kalam', cursive;
+}
+.cardSub {
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.numXl {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+}
+.numBig {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.kpiAccent {
+  background: var(--ink);
+  color: var(--paper);
+}
+.kpiAccent .cardTitle { color: var(--paper); }
+.kpiAccent .numXl { color: var(--accent); }
+.kpiAccent .cardSub { color: #d9d2c1; }
+
+.body {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 18px;
+  padding: 14px 32px 24px;
+}
+
+.funnelCard {
+  padding: 8px 12px 16px;
+}
+
+.funnelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 4px 0;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'Kalam', cursive;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+.dotOrganic { background: oklch(0.62 0.18 38); }
+.dotPaid    { background: oklch(0.55 0.13 250); }
+.dotEmail   { background: oklch(0.62 0.13 145); }
+.dotSocial  { background: oklch(0.65 0.16 320); }
+.dotDirect  { background: oklch(0.45 0.02 80); }
+
+.stepRow {
+  display: flex;
+  align-items: stretch;
+}
+.stepLeft {
+  width: 118px;
+  text-align: right;
+  padding-right: 12px;
+  align-self: center;
+}
+.stepLabelTop {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1;
+  font-family: 'Caveat', cursive;
+}
+.stepName {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.1;
+}
+.stepSub {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.15;
+}
+
+.stepCenter {
+  position: relative;
+  width: 280px;
+  height: 76px;
+  flex: 0 0 auto;
+}
+.stepCenter svg {
+  overflow: visible;
+  display: block;
+}
+.numPillWrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.numPill {
+  background: var(--paper);
+  border: 1.4px solid var(--line);
+  border-radius: 3px;
+  padding: 2px 10px 1px;
+  box-shadow: 2px 2px 0 rgba(31, 27, 22, 0.12);
+}
+.numPillSub {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1;
+  margin-top: 2px;
+  text-align: center;
+}
+
+.stepRight {
+  width: 130px;
+  padding-left: 12px;
+  align-self: center;
+}
+.convRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.convPct {
+  position: relative;
+  display: inline-block;
+  font-weight: 700;
+  font-size: 17px;
+}
+.convPct::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -4px;
+  height: 6px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 6' preserveAspectRatio='none'><path d='M1,3 Q25,0 50,3 T99,3' fill='none' stroke='%23e07a3d' stroke-width='2' stroke-linecap='round'/></svg>") no-repeat center / 100% 100%;
+}
+.convNext {
+  color: var(--muted);
+  font-size: 14px;
+  font-family: 'Caveat', cursive;
+}
+.endLabel {
+  font-size: 16px;
+  color: var(--accent);
+  font-family: 'Caveat', cursive;
+}
+
+.gapRow {
+  display: flex;
+  height: 8px;
+  align-items: center;
+}
+.dropoff {
+  position: absolute;
+  right: 8px;
+  top: -2px;
+  white-space: nowrap;
+  color: var(--accent);
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hrSk {
+  height: 8px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 8' preserveAspectRatio='none'><path d='M2,4 Q60,1 120,5 T240,4 T360,4 L398,4' fill='none' stroke='%231f1b16' stroke-width='1.4' stroke-linecap='round'/></svg>") no-repeat center / 100% 100%;
+  margin: 8px 0;
+}
+
+.barList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.barLabel {
+  font-size: 12px;
+  width: 70px;
+  color: var(--ink-2);
+}
+.barTrack {
+  flex: 1;
+  height: 10px;
+  background: var(--paper-2);
+  border: 1.2px solid var(--line);
+  border-radius: 2px;
+  position: relative;
+}
+.barFill {
+  position: absolute;
+  inset: 0;
+  background: var(--ink-2);
+}
+.barFillAccent {
+  background: var(--accent);
+}
+.barRight {
+  font-size: 12px;
+  width: 38px;
+  text-align: right;
+}
