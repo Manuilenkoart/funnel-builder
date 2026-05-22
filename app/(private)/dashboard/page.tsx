@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import styles from "./dashboard.module.css";
 import {
-  CHANNEL_COLORS,
-  CHANNEL_SHARES,
-  CHANNELS,
-  fmt,
-  FUNNEL_DATA,
-  type FunnelStep,
-  sparklinePath,
-} from "./funnel-data";
+  type ChannelMetric,
+  formatDateRange,
+  loadDashboardData,
+  type StepMetric,
+} from "./dashboard-data";
+import { CHANNEL_COLORS, fmt, sparklinePath } from "./funnel-data";
+
+export const dynamic = "force-dynamic";
 
 const SVG_W = 280;
 const STEP_H = 76;
@@ -52,6 +53,8 @@ function SketchDefs() {
   );
 }
 
+// TODO: trending line
+// eslint-disable-next-line unused-imports/no-unused-vars
 function Sparkline({
   seed,
   up,
@@ -87,20 +90,30 @@ function FunnelStepRow({
   index,
   total,
 }: {
-  step: FunnelStep;
-  next: FunnelStep | undefined;
+  step: StepMetric;
+  next: StepMetric | undefined;
   index: number;
   total: number;
 }) {
-  const ratioTop = step.users / total;
-  const ratioBot = (next?.users ?? step.users * 0.4) / total;
-  const wTop = MIN_W + (MAX_W - MIN_W) * ratioTop;
-  const wBot = MIN_W + (MAX_W - MIN_W) * ratioBot;
-  const shares = CHANNEL_SHARES[step.id] || [40, 20, 20, 12, 8];
-  const convToNext = next
-    ? ((next.users / step.users) * 100).toFixed(1) + "%"
-    : null;
-  const lost = next ? step.users - next.users : 0;
+  const safeTotal = total || 1;
+  const ratioTop = step.users / safeTotal;
+  const ratioBot = (next?.users ?? step.users * 0.4) / safeTotal;
+  const wTop = MIN_W + (MAX_W - MIN_W) * Math.min(1, ratioTop);
+  const wBot = MIN_W + (MAX_W - MIN_W) * Math.min(1, ratioBot);
+  const shares =
+    step.shares.length && step.shares.some((s) => s > 0)
+      ? step.shares
+      : [100, 0, 0, 0, 0];
+  const convToNext =
+    next && step.users > 0
+      ? ((next.users / step.users) * 100).toFixed(1) + "%"
+      : null;
+  const lost = next ? Math.max(0, step.users - next.users) : 0;
+  const lostPct =
+    next && step.users > 0
+      ? ((lost / step.users) * 100).toFixed(lost / step.users < 0.1 ? 1 : 0) +
+        "%"
+      : null;
 
   const bands = shares.reduce<{
     acc: number;
@@ -153,7 +166,7 @@ function FunnelStepRow({
           <div className={styles.numPillWrap}>
             <div className={styles.numPill}>
               <div className={styles.numBig}>
-                {fmt(step.users, true, total)}
+                {fmt(step.users, true, safeTotal)}
               </div>
               <div className={styles.numPillSub}>{fmt(step.users)} users</div>
             </div>
@@ -166,13 +179,14 @@ function FunnelStepRow({
                 <span className={styles.convPct}>{convToNext}</span>
                 <span className={styles.convNext}>→ next</span>
               </div>
-              <div style={{ marginTop: 2 }}>
+              {/* TODO: trending line */}
+              {/* <div style={{ marginTop: 2 }}>
                 <Sparkline
                   seed={index + 3}
                   up={index % 2 === 0}
                   accent={index === 1}
                 />
-              </div>
+              </div> */}
             </>
           ) : (
             <div className={styles.endLabel}>end of funnel</div>
@@ -184,7 +198,9 @@ function FunnelStepRow({
           <div style={{ width: LEFT_W }} />
           <div style={{ width: SVG_W, position: "relative" }}>
             <div className={styles.dropoff}>
-              −{fmt(lost)} <span style={{ fontSize: 14 }}>lost</span>
+              −{fmt(lost)}
+              {lostPct ? ` (${lostPct})` : ""}{" "}
+              <span style={{ fontSize: 14 }}>lost</span>
             </div>
           </div>
           <div style={{ width: RIGHT_W }} />
@@ -194,11 +210,30 @@ function FunnelStepRow({
   );
 }
 
-export default function DashboardPage() {
-  const steps = FUNNEL_DATA;
-  const total = steps[0].users;
+export default async function DashboardPage() {
+  const { steps, channels, dateRange } = await loadDashboardData();
+
+  const first = steps[0];
   const final = steps[steps.length - 1];
-  const overall = ((final.users / total) * 100).toFixed(2);
+  const total = first?.users ?? 0;
+  const overall =
+    first && final && first.users > 0
+      ? ((final.users / first.users) * 100).toFixed(2)
+      : "0.00";
+
+  const maxStepSec = steps.reduce(
+    (m, s) => (s.timeSeconds > m ? s.timeSeconds : m),
+    0,
+  );
+  const accentIdx = steps.reduce(
+    (best, s, i, arr) =>
+      s.timeSeconds > (arr[best]?.timeSeconds ?? 0) ? i : best,
+    0,
+  );
+
+  const visibleChannels = channels.filter(
+    (c: ChannelMetric) => c.total > 0 || c.name !== "—",
+  );
 
   return (
     <main className={styles.wf}>
@@ -207,7 +242,9 @@ export default function DashboardPage() {
       <div className={styles.header}>
         <div>
           <div className={styles.title}>Funnel Analytics</div>
-          <div className={styles.subtitle}>May 1 – May 21, 2026</div>
+          <div className={styles.subtitle}>
+            {formatDateRange(dateRange.from, dateRange.to)}
+          </div>
         </div>
         <div className={styles.chrome}>
           <div className={styles.pill}>
@@ -222,13 +259,15 @@ export default function DashboardPage() {
       <div className={styles.kpis}>
         <div className={styles.card} style={{ flex: 1 }}>
           <div className={styles.cardTitle}>Entered funnel</div>
-          <div className={styles.numXl}>{fmt(steps[0].users)}</div>
+          <div className={styles.numXl}>{fmt(first?.users ?? 0)}</div>
           <div className={styles.cardSub}>landed on site</div>
         </div>
         <div className={styles.card} style={{ flex: 1 }}>
           <div className={styles.cardTitle}>Reached final step</div>
-          <div className={styles.numXl}>{fmt(final.users)}</div>
-          <div className={styles.cardSub}>{final.sub.toLowerCase()}</div>
+          <div className={styles.numXl}>{fmt(final?.users ?? 0)}</div>
+          <div className={styles.cardSub}>
+            {final ? final.sub.toLowerCase() : "no data"}
+          </div>
         </div>
         <div
           className={`${styles.card} ${styles.kpiAccent}`}
@@ -245,7 +284,7 @@ export default function DashboardPage() {
           <div className={styles.funnelHeader}>
             <div className={styles.cardTitle}>Conversion funnel</div>
             <div className={styles.legend}>
-              {CHANNELS.map((c) => (
+              {visibleChannels.map((c) => (
                 <span key={c.id}>
                   <span className={`${styles.dot} ${DOT_CLASSES[c.cls]}`} />{" "}
                   {c.name}
@@ -254,15 +293,30 @@ export default function DashboardPage() {
             </div>
           </div>
           <div style={{ padding: "14px 0 8px" }}>
-            {steps.map((s, i) => (
-              <FunnelStepRow
-                key={s.id}
-                step={s}
-                next={steps[i + 1]}
-                index={i}
-                total={total}
-              />
-            ))}
+            {steps.length === 0 ? (
+              <div
+                style={{
+                  padding: "48px 16px",
+                  textAlign: "center",
+                  color: "#8a8275",
+                  fontFamily: "Caveat, cursive",
+                  fontSize: 20,
+                }}
+              >
+                no events yet — funnel data will appear once users hit the
+                screens
+              </div>
+            ) : (
+              steps.map((s, i) => (
+                <FunnelStepRow
+                  key={s.id}
+                  step={s}
+                  next={steps[i + 1]}
+                  index={i}
+                  total={total}
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -275,13 +329,15 @@ export default function DashboardPage() {
             <div className={styles.hrSk} />
             <div className={styles.barList}>
               {steps.map((s, i) => {
-                const value = (i + 1) * 15;
+                const value = maxStepSec
+                  ? Math.max(4, (s.timeSeconds / maxStepSec) * 100)
+                  : 0;
                 return (
                   <div key={s.id} className={styles.barRow}>
                     <div className={styles.barLabel}>{s.name}</div>
                     <div className={styles.barTrack}>
                       <div
-                        className={`${styles.barFill} ${i === 2 ? styles.barFillAccent : ""}`}
+                        className={`${styles.barFill} ${i === accentIdx && maxStepSec ? styles.barFillAccent : ""}`}
                         style={{ width: `${value}%` }}
                       />
                     </div>
