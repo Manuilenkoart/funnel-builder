@@ -5,11 +5,14 @@ const { mockEq, mockInsert, mockUpsert, mockUpdate, mockFrom } = vi.hoisted(() =
   const mockInsert = vi.fn().mockResolvedValue({ error: null });
   const mockUpsert = vi.fn().mockResolvedValue({ error: null });
   const mockUpdate = vi.fn(() => ({ eq: mockEq }));
-  const mockFrom = vi.fn(() => ({
-    upsert: mockUpsert,
-    insert: mockInsert,
-    update: mockUpdate,
-  }));
+  const mockFrom = vi.fn(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (_table: string) => ({
+      upsert: mockUpsert,
+      insert: mockInsert,
+      update: mockUpdate,
+    }),
+  );
   return { mockEq, mockInsert, mockUpsert, mockUpdate, mockFrom };
 });
 
@@ -66,6 +69,50 @@ describe('recordEvent', () => {
       user_id: 'user-abc',
       utm_source: 'facebook',
     });
+  });
+
+  it('upserts user_attribution with first_source and last_source set to the same utmSource', async () => {
+    await recordEvent('user-abc', 'quiz-1', 'page_view', '0', 'google');
+    expect(mockFrom).toHaveBeenCalledWith('user_attribution');
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'user-abc',
+        first_source: 'google',
+        last_source: 'google',
+      }),
+      { onConflict: 'user_id', ignoreDuplicates: true },
+    );
+  });
+
+  it('always updates last_source and last_seen_at on user_attribution', async () => {
+    await recordEvent('user-abc', 'quiz-1', 'page_view', '0', 'facebook');
+    expect(mockFrom).toHaveBeenCalledWith('user_attribution');
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ last_source: 'facebook' }),
+    );
+    expect(mockEq).toHaveBeenCalledWith('user_id', 'user-abc');
+  });
+
+  it('uses an ISO timestamp string for first_seen_at and last_seen_at', async () => {
+    await recordEvent('user-abc', 'quiz-1', 'page_view', '0', 'google');
+    const upsertCall = mockUpsert.mock.calls.find(
+      ([row]) => (row as { user_id?: string }).user_id === 'user-abc',
+    );
+    expect(upsertCall).toBeDefined();
+    const row = upsertCall![0] as Record<string, unknown>;
+    expect(typeof row.first_seen_at).toBe('string');
+    expect(typeof row.last_seen_at).toBe('string');
+    expect(() => new Date(row.first_seen_at as string).toISOString()).not.toThrow();
+  });
+
+  it('writes attribution before the events row so the FK is satisfied', async () => {
+    await recordEvent('user-abc', 'quiz-1', 'page_view', '0', 'google');
+    const fromCalls = mockFrom.mock.calls.map(([t]) => t);
+    const attributionIdx = fromCalls.indexOf('user_attribution');
+    const eventsIdx = fromCalls.indexOf('events');
+    expect(attributionIdx).toBeGreaterThan(-1);
+    expect(eventsIdx).toBeGreaterThan(-1);
+    expect(attributionIdx).toBeLessThan(eventsIdx);
   });
 });
 

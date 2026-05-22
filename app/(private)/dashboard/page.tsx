@@ -1,3 +1,7 @@
+import { withParams } from "@/app/lib/url";
+
+import { loadAttributionData } from "./attribution-data";
+import AttributionFlow from "./AttributionFlow";
 import styles from "./dashboard.module.css";
 import {
   type ChannelMetric,
@@ -5,6 +9,7 @@ import {
   type StepMetric,
 } from "./dashboard-data";
 import DateRangeFilter from "./DateRangeFilter";
+import FlowTable from "./FlowTable";
 import { CHANNEL_COLORS, fmt } from "./funnel-data";
 import SourceFilter from "./SourceFilter";
 
@@ -205,11 +210,17 @@ export default async function DashboardPage({
     [from, to] = [to, from];
   }
 
-  const { steps, channels, allSources } = await loadDashboardData({
-    from: from ?? undefined,
-    to: to ?? undefined,
-    source: sourceParam ?? undefined,
-  });
+  const [{ steps, channels, allSources }, attribution] = await Promise.all([
+    loadDashboardData({
+      from: from ?? undefined,
+      to: to ?? undefined,
+      source: sourceParam ?? undefined,
+    }),
+    loadAttributionData({
+      from: from ?? undefined,
+      to: to ?? undefined,
+    }),
+  ]);
 
   const first = steps[0];
   const final = steps[steps.length - 1];
@@ -232,6 +243,13 @@ export default async function DashboardPage({
   const visibleChannels = channels.filter(
     (c: ChannelMetric) => c.total > 0 || c.name !== "—",
   );
+
+  const flowsExpanded =
+    (Array.isArray(sp.flows) ? sp.flows[0] : sp.flows) === "all";
+  const flowsExpandHref = withParams("/dashboard", {
+    ...sp,
+    flows: flowsExpanded ? "" : "all",
+  });
 
   return (
     <main className={styles.wf}>
@@ -338,6 +356,25 @@ export default async function DashboardPage({
               })}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className={styles.section}>
+        <div className={`${styles.card} ${styles.flowCard}`}>
+          <div className={styles.cardTitle}>Source flow — first → last</div>
+          <div className={styles.cardSub}>
+            where users came from on their first vs. most recent visit ·{" "}
+            {attribution.totalUsers} users in this window
+          </div>
+          <AttributionFlow
+            flows={attribution.flows}
+            totalUsers={attribution.totalUsers}
+          />
+          <FlowTable
+            flows={attribution.flows}
+            expandAll={flowsExpanded}
+            expandHref={flowsExpandHref}
+          />
         </div>
       </div>
     </main>
