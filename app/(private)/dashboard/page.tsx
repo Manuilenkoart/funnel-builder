@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import styles from "./dashboard.module.css";
 import {
   type ChannelMetric,
-  formatDateRange,
   loadDashboardData,
   type StepMetric,
 } from "./dashboard-data";
-import { CHANNEL_COLORS, fmt, sparklinePath } from "./funnel-data";
+import DateRangeFilter from "./DateRangeFilter";
+import { CHANNEL_COLORS, fmt } from "./funnel-data";
 
 export const dynamic = "force-dynamic";
 
@@ -49,37 +48,6 @@ function SketchDefs() {
           <feDisplacementMap in="SourceGraphic" scale={1.4} />
         </filter>
       </defs>
-    </svg>
-  );
-}
-
-// TODO: trending line
-// eslint-disable-next-line unused-imports/no-unused-vars
-function Sparkline({
-  seed,
-  up,
-  accent,
-}: {
-  seed: number;
-  up: boolean;
-  accent: boolean;
-}) {
-  const width = 110;
-  const height = 20;
-  const { d, last } = sparklinePath(width, height, seed, up);
-  const stroke = accent ? "oklch(0.64 0.18 38)" : "#1f1b16";
-  return (
-    <svg width={width} height={height} style={{ overflow: "visible" }}>
-      <path
-        d={d}
-        fill="none"
-        stroke={stroke}
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        filter="url(#wf-rough-2)"
-      />
-      <circle cx={last[0]} cy={last[1]} r={2.5} fill={stroke} />
     </svg>
   );
 }
@@ -179,14 +147,6 @@ function FunnelStepRow({
                 <span className={styles.convPct}>{convToNext}</span>
                 <span className={styles.convNext}>→ next</span>
               </div>
-              {/* TODO: trending line */}
-              {/* <div style={{ marginTop: 2 }}>
-                <Sparkline
-                  seed={index + 3}
-                  up={index % 2 === 0}
-                  accent={index === 1}
-                />
-              </div> */}
             </>
           ) : (
             <div className={styles.endLabel}>end of funnel</div>
@@ -210,8 +170,42 @@ function FunnelStepRow({
   );
 }
 
-export default async function DashboardPage() {
-  const { steps, channels, dateRange } = await loadDashboardData();
+function todayISO(): string {
+  const d = new Date();
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function normaliseDate(value: string | string[] | undefined): string | null {
+  const v = Array.isArray(value) ? value[0] : value;
+  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+  const d = new Date(`${v}T00:00:00.000Z`);
+  return Number.isNaN(d.getTime()) ? null : v;
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const fromParam = normaliseDate(sp.from);
+  const toParam = normaliseDate(sp.to);
+  const hasAnyParam = sp.from !== undefined || sp.to !== undefined;
+
+  const today = todayISO();
+  let from = fromParam ?? (hasAnyParam ? null : today);
+  let to = toParam ?? (hasAnyParam ? null : today);
+  if (from && to && from > to) {
+    [from, to] = [to, from];
+  }
+
+  const { steps, channels } = await loadDashboardData({
+    from: from ?? undefined,
+    to: to ?? undefined,
+  });
 
   const first = steps[0];
   const final = steps[steps.length - 1];
@@ -242,11 +236,9 @@ export default async function DashboardPage() {
       <div className={styles.header}>
         <div>
           <div className={styles.title}>Funnel Analytics</div>
-          <div className={styles.subtitle}>
-            {formatDateRange(dateRange.from, dateRange.to)}
-          </div>
         </div>
         <div className={styles.chrome}>
+          <DateRangeFilter from={from ?? ""} to={to ?? ""} />
           <div className={styles.pill}>
             <span className={`${styles.dot} ${styles.dotOrganic}`} />
             <span className={`${styles.dot} ${styles.dotPaid}`} />

@@ -50,12 +50,7 @@
   line-height: 1;
   letter-spacing: -0.01em;
 }
-.subtitle {
-  font-family: 'Caveat', cursive;
-  font-size: 18px;
-  color: var(--muted);
-  margin-top: 4px;
-}
+
 .chrome {
   display: flex;
   gap: 10px;
@@ -321,4 +316,62 @@
   font-size: 12px;
   width: 38px;
   text-align: right;
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Kalam', cursive;
+  transition: opacity 120ms ease;
+}
+.filter[data-pending="true"] {
+  opacity: 0.55;
+}
+.filterInputs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  padding: 4px 10px;
+}
+.filterInput {
+  font-family: 'Kalam', cursive;
+  font-size: 13px;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+}
+.filterInput::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+}
+.filterDash {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+}
+.filterPresets {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.filterPreset {
+  font-family: 'Kalam', cursive;
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 3px 9px;
+  cursor: pointer;
+  line-height: 1;
+}
+.filterPreset:hover {
+  background: var(--paper-2);
 }

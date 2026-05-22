@@ -24,6 +24,19 @@ export type DashboardData = {
   totalUsers: number;
 };
 
+export type DashboardRange = {
+  from?: string;
+  to?: string;
+};
+
+const DAY_MS = 86_400_000;
+
+function parseISODate(value: string | undefined): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const d = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 type RawEvent = {
   user_id: string;
   name: string;
@@ -77,12 +90,31 @@ function fmtDuration(seconds: number): string {
   return `${d}d ${h}h`;
 }
 
-export async function loadDashboardData(): Promise<DashboardData> {
+export async function loadDashboardData(
+  range: DashboardRange = {},
+): Promise<DashboardData> {
   const supabase = createServerClient();
-  const { data, error } = await supabase
+
+  let fromDate = parseISODate(range.from);
+  let toDate = parseISODate(range.to);
+  if (fromDate && toDate && fromDate.getTime() > toDate.getTime()) {
+    [fromDate, toDate] = [toDate, fromDate];
+  }
+
+  let query = supabase
     .from("events")
     .select("user_id, name, question_id, utm_source, funnel_id, created_at")
     .order("created_at", { ascending: true });
+
+  if (fromDate) {
+    query = query.gte("created_at", fromDate.toISOString());
+  }
+  if (toDate) {
+    const exclusiveEnd = new Date(toDate.getTime() + DAY_MS);
+    query = query.lt("created_at", exclusiveEnd.toISOString());
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("[dashboard] failed to load events:", error);
@@ -207,25 +239,10 @@ export async function loadDashboardData(): Promise<DashboardData> {
   return {
     steps,
     channels,
-    dateRange: { from: firstTs, to: lastTs },
+    dateRange: {
+      from: fromDate ?? firstTs,
+      to: toDate ?? lastTs,
+    },
     totalUsers: userFirstSource.size,
   };
-}
-
-export function formatDateRange(from: Date | null, to: Date | null): string {
-  if (!from || !to) return "no data yet";
-  const sameYear = from.getFullYear() === to.getFullYear();
-  const sameMonth = sameYear && from.getMonth() === to.getMonth();
-  const monthDay = (d: Date) =>
-    d.toLocaleString("en-US", { month: "short", day: "numeric" });
-  if (sameMonth && from.getDate() === to.getDate()) {
-    return `${monthDay(from)}, ${from.getFullYear()}`;
-  }
-  if (sameMonth) {
-    return `${from.toLocaleString("en-US", { month: "short" })} ${from.getDate()} – ${to.getDate()}, ${to.getFullYear()}`;
-  }
-  if (sameYear) {
-    return `${monthDay(from)} – ${monthDay(to)}, ${to.getFullYear()}`;
-  }
-  return `${monthDay(from)}, ${from.getFullYear()} – ${monthDay(to)}, ${to.getFullYear()}`;
 }
