@@ -22,11 +22,13 @@ export type DashboardData = {
   channels: ChannelMetric[];
   dateRange: { from: Date | null; to: Date | null };
   totalUsers: number;
+  allSources: string[];
 };
 
 export type DashboardRange = {
   from?: string;
   to?: string;
+  source?: string;
 };
 
 const DAY_MS = 86_400_000;
@@ -120,7 +122,27 @@ export async function loadDashboardData(
     console.error("[dashboard] failed to load events:", error);
   }
 
-  const events = (data ?? []) as RawEvent[];
+  const allEvents = (data ?? []) as RawEvent[];
+
+  const allSourcesSet = new Set<string>();
+  for (const e of allEvents) {
+    allSourcesSet.add(e.utm_source || "Direct");
+  }
+  const allSources = [...allSourcesSet].sort((a, b) => a.localeCompare(b));
+
+  const sourceFilter = range.source?.trim();
+  let events = allEvents;
+  if (sourceFilter) {
+    const userAttribution = new Map<string, string>();
+    for (const e of allEvents) {
+      if (!userAttribution.has(e.user_id)) {
+        userAttribution.set(e.user_id, e.utm_source || "Direct");
+      }
+    }
+    events = allEvents.filter(
+      (e) => userAttribution.get(e.user_id) === sourceFilter,
+    );
+  }
 
   const stepKeyInfo = new Map<string, { name: string; qid: string }>();
   for (const e of events) {
@@ -244,5 +266,6 @@ export async function loadDashboardData(
       to: toDate ?? lastTs,
     },
     totalUsers: userFirstSource.size,
+    allSources,
   };
 }

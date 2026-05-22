@@ -6,6 +6,7 @@ import {
 } from "./dashboard-data";
 import DateRangeFilter from "./DateRangeFilter";
 import { CHANNEL_COLORS, fmt } from "./funnel-data";
+import SourceFilter from "./SourceFilter";
 
 export const dynamic = "force-dynamic";
 
@@ -194,6 +195,8 @@ export default async function DashboardPage({
   const fromParam = normaliseDate(sp.from);
   const toParam = normaliseDate(sp.to);
   const hasAnyParam = sp.from !== undefined || sp.to !== undefined;
+  const sourceRaw = Array.isArray(sp.source) ? sp.source[0] : sp.source;
+  const sourceParam = sourceRaw && sourceRaw.trim() ? sourceRaw.trim() : null;
 
   const today = todayISO();
   let from = fromParam ?? (hasAnyParam ? null : today);
@@ -202,9 +205,10 @@ export default async function DashboardPage({
     [from, to] = [to, from];
   }
 
-  const { steps, channels } = await loadDashboardData({
+  const { steps, channels, allSources } = await loadDashboardData({
     from: from ?? undefined,
     to: to ?? undefined,
+    source: sourceParam ?? undefined,
   });
 
   const first = steps[0];
@@ -239,12 +243,7 @@ export default async function DashboardPage({
         </div>
         <div className={styles.chrome}>
           <DateRangeFilter from={from ?? ""} to={to ?? ""} />
-          <div className={styles.pill}>
-            <span className={`${styles.dot} ${styles.dotOrganic}`} />
-            <span className={`${styles.dot} ${styles.dotPaid}`} />
-            <span className={`${styles.dot} ${styles.dotEmail}`} />
-            <span>All channels ▾</span>
-          </div>
+          <SourceFilter sources={allSources} value={sourceParam ?? ""} />
         </div>
       </div>
 
