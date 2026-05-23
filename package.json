@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -20,11 +22,13 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.7",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "eslint-plugin-simple-import-sort": "^13.0.0",
