@@ -1,25 +1,46 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockEq, mockInsert, mockUpsert, mockUpdate, mockFrom } = vi.hoisted(() => {
+const {
+  mockEq, mockInsert, mockUpsert, mockUpdate,
+  mockMaybeSingle, mockSelectEq, mockSelect,
+  mockFrom,
+  mockCookieGet, mockCookieSet,
+} = vi.hoisted(() => {
   const mockEq = vi.fn().mockResolvedValue({ error: null });
   const mockInsert = vi.fn().mockResolvedValue({ error: null });
   const mockUpsert = vi.fn().mockResolvedValue({ error: null });
   const mockUpdate = vi.fn(() => ({ eq: mockEq }));
+  const mockMaybeSingle = vi.fn();
+  const mockSelectEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
+  const mockSelect = vi.fn(() => ({ eq: mockSelectEq }));
   const mockFrom = vi.fn(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (_table: string) => ({
       upsert: mockUpsert,
       insert: mockInsert,
       update: mockUpdate,
+      select: mockSelect,
     }),
   );
-  return { mockEq, mockInsert, mockUpsert, mockUpdate, mockFrom };
+  const mockCookieGet = vi.fn();
+  const mockCookieSet = vi.fn();
+  return {
+    mockEq, mockInsert, mockUpsert, mockUpdate,
+    mockMaybeSingle, mockSelectEq, mockSelect,
+    mockFrom,
+    mockCookieGet, mockCookieSet,
+  };
 });
 
 vi.mock('@/app/lib/supabase/server', () => ({
   createServerClient: () => ({ from: mockFrom }),
 }));
 
+vi.mock('next/headers', () => ({
+  cookies: () => Promise.resolve({ get: mockCookieGet, set: mockCookieSet }),
+}));
+
+import { saveEmail } from '@/app/actions/tracking';
 import { recordEvent, updateUserEmail } from '@/app/lib/tracking';
 
 describe('recordEvent', () => {
@@ -124,5 +145,94 @@ describe('updateUserEmail', () => {
     expect(mockFrom).toHaveBeenCalledWith('users');
     expect(mockUpdate).toHaveBeenCalledWith({ email: 'test@example.com' });
     expect(mockEq).toHaveBeenCalledWith('id', 'user-abc');
+  });
+});
+
+describe('saveEmail', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCookieGet.mockReturnValue({ value: 'anon-uuid' });
+    mockMaybeSingle.mockResolvedValue({ data: null });
+    mockEq.mockResolvedValue({ error: null });
+  });
+
+  describe('new email', () => {
+    it('attaches the email to the current anonymous user', async () => {
+      const result = await saveEmail('new@example.com');
+      expect(result).toEqual({ ok: true });
+      expect(mockUpdate).toHaveBeenCalledWith({ email: 'new@example.com' });
+      expect(mockEq).toHaveBeenCalledWith('id', 'anon-uuid');
+    });
+
+    it('does not change the userId cookie', async () => {
+      await saveEmail('new@example.com');
+      expect(mockCookieSet).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('existing email — returning user', () => {
+    beforeEach(() => {
+      mockMaybeSingle.mockResolvedValue({ data: { id: 'returning-uuid' } });
+    });
+
+    it('switches the userId cookie to the existing user', async () => {
+      await saveEmail('returning@example.com');
+      expect(mockCookieSet).toHaveBeenCalledWith(
+        'userId',
+        'returning-uuid',
+        expect.objectContaining({ httpOnly: true }),
+      );
+    });
+
+    it('does not update the email column', async () => {
+      await saveEmail('returning@example.com');
+      expect(mockUpdate).not.toHaveBeenCalled();
+    });
+
+    it('returns ok: true', async () => {
+      expect(await saveEmail('returning@example.com')).toEqual({ ok: true });
+    });
+  });
+
+  describe('user re-submitting their own email', () => {
+    beforeEach(() => {
+      // existingUser.id matches the current session — same user
+      mockMaybeSingle.mockResolvedValue({ data: { id: 'anon-uuid' } });
+    });
+
+    it('updates the email without switching the cookie', async () => {
+      await saveEmail('mine@example.com');
+      expect(mockCookieSet).not.toHaveBeenCalled();
+      expect(mockUpdate).toHaveBeenCalledWith({ email: 'mine@example.com' });
+    });
+  });
+
+  describe('validation', () => {
+    it('rejects an invalid email format', async () => {
+      expect(await saveEmail('not-an-email')).toEqual({ ok: false, error: 'Invalid email' });
+    });
+
+    it('rejects an empty string', async () => {
+      expect(await saveEmail('')).toEqual({ ok: false, error: 'Invalid email' });
+    });
+  });
+
+  describe('missing session', () => {
+    it('returns an error when the userId cookie is absent', async () => {
+      mockCookieGet.mockReturnValue(undefined);
+      expect(await saveEmail('user@example.com')).toEqual({ ok: false, error: 'No user session' });
+    });
+  });
+
+  describe('database errors', () => {
+    it('returns a generic error when the email lookup throws', async () => {
+      mockMaybeSingle.mockRejectedValue(new Error('connection lost'));
+      expect(await saveEmail('user@example.com')).toEqual({ ok: false, error: 'Failed to save email' });
+    });
+
+    it('returns a generic error when the email update throws', async () => {
+      mockEq.mockRejectedValue(new Error('unique violation'));
+      expect(await saveEmail('new@example.com')).toEqual({ ok: false, error: 'Failed to save email' });
+    });
   });
 });
