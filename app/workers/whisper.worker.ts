@@ -12,7 +12,7 @@ let transcriberPromise: Promise<AutomaticSpeechRecognitionPipeline> | null =
 
 function getTranscriber() {
   transcriberPromise ??= pipeline("automatic-speech-recognition", MODEL_ID, {
-    dtype: "fp32",
+    dtype: "bnb4",
     progress_callback: (data: unknown) => {
       self.postMessage({ type: "model-progress", data });
     },

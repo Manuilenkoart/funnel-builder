@@ -5,11 +5,13 @@ import { funnelsConfig } from '@/app/config/funnels';
 import { getUtmSource } from '@/app/lib/source';
 import { recordEvent } from '@/app/lib/tracking';
 import { withParams } from '@/app/lib/url';
+import { QuestionType } from '@/app/types/funnel';
 
 import Motif from '../components/Motif';
 import ProgressBar from '../components/ProgressBar';
 import Shell from '../components/Shell';
 import ScreenRenderer from '../QuestionType/ScreenRenderer';
+import VoicePreloader from '../QuestionType/VoiceInput/VoicePreloader';
 
 export default async function FunnelScreenPage({
   params,
@@ -42,6 +44,9 @@ export default async function FunnelScreenPage({
   }
 
   const screen = config.screens[screenIndex];
+  const shouldPreloadVoice = config.screens
+    .slice(screenIndex)
+    .some((s) => s.type === QuestionType.voice);
   const nextHref = withParams(
     screenIndex + 1 < config.screens.length
       ? `/${funnelId}/${screenIndex + 1}`
@@ -53,6 +58,7 @@ export default async function FunnelScreenPage({
 
   return (
     <Shell>
+      {shouldPreloadVoice ? <VoicePreloader /> : null}
       <ProgressBar
         step={screenIndex}
         total={config.screens.length}
