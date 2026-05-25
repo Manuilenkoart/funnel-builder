@@ -1,6 +1,7 @@
 export enum QuestionType {
   rowList = "rowList",
   email = "email",
+  voice = "voice",
 }
 
 export interface QuestionTitleConfig {
@@ -28,7 +29,18 @@ export interface EmailQuestionConfig extends BaseQuestionConfig {
   };
 }
 
-export type QuestionConfig = RowListQuestionConfig | EmailQuestionConfig;
+export interface VoiceQuestionConfig extends BaseQuestionConfig {
+  type: QuestionType.voice;
+  componentProps: {
+    recordButtonText: string;
+    continueButtonText: string;
+  };
+}
+
+export type QuestionConfig =
+  | RowListQuestionConfig
+  | EmailQuestionConfig
+  | VoiceQuestionConfig;
 
 export interface FunnelConfig {
   screens: QuestionConfig[];

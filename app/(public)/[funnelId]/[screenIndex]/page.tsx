@@ -62,8 +62,9 @@ export default async function FunnelScreenPage({
         <div className="mb-7 flex justify-center">
           <Motif />
         </div>
-        <ScreenRenderer screen={screen} nextHref={nextHref} prevHref={prevHref} />
-        <div className="flex-1" />
+        <div className="flex flex-1 flex-col">
+          <ScreenRenderer screen={screen} nextHref={nextHref} prevHref={prevHref} />
+        </div>
       </div>
     </Shell>
   );

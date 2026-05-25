@@ -32,6 +32,15 @@ export const funnelsConfig: Record<QuizId, FunnelConfig> = {
           ],
         },
       },
+      {
+        title: { text: "What's bothering you?" },
+        subtitle: { text: "Tap to record — we'll listen and reflect back." },
+        type: QuestionType.voice,
+        componentProps: {
+          recordButtonText: "Tap to speak",
+          continueButtonText: "Continue",
+        },
+      },
       EMAIL_SCREEN,
     ],
   },

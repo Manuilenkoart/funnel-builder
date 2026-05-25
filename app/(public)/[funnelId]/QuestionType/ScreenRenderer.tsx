@@ -2,6 +2,7 @@ import { QuestionConfig, QuestionType } from "@/app/types/funnel";
 
 import EmailForm from "./EmailForm";
 import RowList from "./RowList";
+import VoiceInput from "./VoiceInput";
 
 interface ScreenRendererProps {
   screen: QuestionConfig;
@@ -26,6 +27,9 @@ export default function ScreenRenderer({ screen, nextHref }: ScreenRendererProps
       )}
       {screen.type === QuestionType.email && (
         <EmailForm screen={screen} nextHref={nextHref} />
+      )}
+      {screen.type === QuestionType.voice && (
+        <VoiceInput screen={screen} nextHref={nextHref} />
       )}
     </>
   );
