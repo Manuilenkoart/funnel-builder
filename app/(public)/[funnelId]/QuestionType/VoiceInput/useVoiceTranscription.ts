@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  getCurrentProgress,
+  isWhisperReady,
+  preloadWhisper,
+  sendToWhisper,
+  subscribeWhisper,
+} from "./whisperClient";
+
 export type VoicePhase =
   | "loading-model"
   | "ready"
@@ -12,14 +20,9 @@ export type VoicePhase =
 const MIN_RECORDING_MS = 250;
 const TARGET_SAMPLE_RATE = 16000;
 
-type WorkerOutbound =
-  | { type: "ready" }
-  | { type: "transcript"; text: string }
-  | { type: "error"; message: string }
-  | { type: "model-progress"; data: unknown };
-
 export interface VoiceTranscription {
   phase: VoicePhase;
+  loadProgress: number;
   transcript: string;
   errorMsg: string;
   recordHandlers: {
@@ -43,51 +46,58 @@ async function decodeToMono16k(blob: Blob): Promise<Float32Array> {
 }
 
 export function useVoiceTranscription(): VoiceTranscription {
-  const workerRef = useRef<Worker | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const startedAtRef = useRef<number>(0);
 
-  const [phase, setPhase] = useState<VoicePhase>("loading-model");
+  const [phase, setPhase] = useState<VoicePhase>(() =>
+    isWhisperReady() ? "ready" : "loading-model",
+  );
+  const [loadProgress, setLoadProgress] = useState<number>(() =>
+    getCurrentProgress(),
+  );
   const [transcript, setTranscript] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    const worker = new Worker(
-      new URL("../../../../workers/whisper.worker.ts", import.meta.url),
-      { type: "module" },
-    );
-    workerRef.current = worker;
-
-    const onMessage = (event: MessageEvent<WorkerOutbound>) => {
-      const data = event.data;
-      if (data.type === "ready") setPhase("ready");
-      if (data.type === "transcript") {
-        setTranscript((prev) =>
-          (prev ? `${prev} ${data.text}` : data.text).trim(),
-        );
-        setPhase("ready");
+    const unsubscribe = subscribeWhisper((event) => {
+      switch (event.type) {
+        case "ready":
+          setPhase((prev) => (prev === "loading-model" ? "ready" : prev));
+          setLoadProgress(100);
+          break;
+        case "progress":
+          setLoadProgress(event.percent);
+          break;
+        case "transcript":
+          setTranscript((prev) =>
+            (prev ? `${prev} ${event.text}` : event.text).trim(),
+          );
+          setPhase("ready");
+          break;
+        case "error":
+          setErrorMsg(event.message);
+          setPhase("error");
+          break;
       }
-      if (data.type === "error") {
-        setErrorMsg(data.message);
-        setPhase("error");
-      }
-    };
+    });
 
-    worker.addEventListener("message", onMessage);
-    worker.postMessage({ type: "warmup" });
+    preloadWhisper();
 
-    return () => {
-      worker.removeEventListener("message", onMessage);
-      worker.terminate();
-      workerRef.current = null;
-    };
+    return unsubscribe;
   }, []);
 
   const startRecording = useCallback(async () => {
     if (phase !== "ready") return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: TARGET_SAMPLE_RATE,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
       startedAtRef.current = Date.now();
@@ -106,7 +116,7 @@ export function useVoiceTranscription(): VoiceTranscription {
           return;
         }
         const audio = await decodeToMono16k(blob);
-        workerRef.current?.postMessage({ type: "transcribe", audio });
+        sendToWhisper({ type: "transcribe", audio });
       };
 
       recorder.start();
@@ -153,6 +163,7 @@ export function useVoiceTranscription(): VoiceTranscription {
 
   return {
     phase,
+    loadProgress,
     transcript,
     errorMsg,
     recordHandlers: {

@@ -32,10 +32,16 @@ function MicIcon() {
   );
 }
 
-function getMicLabel(phase: VoicePhase, defaultLabel: string): string {
+function getMicLabel(
+  phase: VoicePhase,
+  defaultLabel: string,
+  loadProgress: number,
+): string {
   switch (phase) {
     case "loading-model":
-      return "Loading model…";
+      return loadProgress > 0
+        ? `Loading model… ${loadProgress}%`
+        : "Loading model…";
     case "recording":
       return "Listening… release to stop";
     case "transcribing":
@@ -47,24 +53,46 @@ function getMicLabel(phase: VoicePhase, defaultLabel: string): string {
   }
 }
 
-function TranscriptPlaceholder({ phase }: { phase: VoicePhase }) {
+function TranscriptPlaceholder({
+  phase,
+  loadProgress,
+}: {
+  phase: VoicePhase;
+  loadProgress: number;
+}) {
   if (phase === "transcribing")
     return <span className="text-white/65">Transcribing…</span>;
   if (phase === "recording")
     return <span className="text-white/65">Listening…</span>;
   if (phase === "loading-model")
-    return <span className="text-white/65">Loading model…</span>;
+    return (
+      <span className="text-white/65">
+        {loadProgress > 0
+          ? `Loading model… ${loadProgress}%`
+          : "Loading model…"}
+      </span>
+    );
   return <span className="text-white/55">Your words will appear here…</span>;
 }
 
 export default function VoiceInput({ screen, nextHref }: VoiceInputProps) {
   const router = useRouter();
-  const { phase, transcript, errorMsg, recordHandlers, clearTranscript } =
-    useVoiceTranscription();
+  const {
+    phase,
+    loadProgress,
+    transcript,
+    errorMsg,
+    recordHandlers,
+    clearTranscript,
+  } = useVoiceTranscription();
 
   const isRecording = phase === "recording";
   const isBusy = phase === "loading-model" || phase === "transcribing";
-  const micLabel = getMicLabel(phase, screen.componentProps.recordButtonText);
+  const micLabel = getMicLabel(
+    phase,
+    screen.componentProps.recordButtonText,
+    loadProgress,
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -123,7 +151,7 @@ export default function VoiceInput({ screen, nextHref }: VoiceInputProps) {
         {transcript ? (
           <span>{transcript}</span>
         ) : (
-          <TranscriptPlaceholder phase={phase} />
+          <TranscriptPlaceholder phase={phase} loadProgress={loadProgress} />
         )}
       </div>
 
