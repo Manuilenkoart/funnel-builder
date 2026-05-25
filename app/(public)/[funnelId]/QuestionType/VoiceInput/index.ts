@@ -1,0 +1,1 @@
+export { default as VoiceInput } from './VoiceInput'

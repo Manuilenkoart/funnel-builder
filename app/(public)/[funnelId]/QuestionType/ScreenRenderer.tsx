@@ -2,7 +2,7 @@ import { QuestionConfig, QuestionType } from "@/app/types/funnel";
 
 import EmailForm from "./EmailForm";
 import RowList from "./RowList";
-import VoiceInput from "./VoiceInput";
+import { VoiceInput } from "./VoiceInput";
 
 interface ScreenRendererProps {
   screen: QuestionConfig;
