@@ -134,51 +134,13 @@ export default function VoiceInput({ screen, nextHref }: VoiceInputProps) {
         disabled={isBusy}
         aria-label={micLabel}
         aria-pressed={isRecording}
-        className="glass-gloss flex items-center justify-center gap-3 text-white transition active:scale-[0.985] disabled:opacity-60"
-        style={{
-          padding: "18px 22px",
-          background: isRecording
-            ? "rgba(255,80,80,0.35)"
-            : "var(--lg-glass-bg)",
-          border: `${isRecording ? 1.5 : 0.5}px solid ${
-            isRecording ? "rgba(255,160,160,0.85)" : "var(--lg-glass-border)"
-          }`,
-          backdropFilter: "blur(22px) saturate(180%)",
-          WebkitBackdropFilter: "blur(22px) saturate(180%)",
-          boxShadow:
-            "inset 0 0.5px 0 rgba(255,255,255,0.55), inset 0 -0.5px 0 rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.10)",
-          borderRadius: "var(--lg-radius)",
-          fontSize: 17,
-          fontWeight: 500,
-          letterSpacing: -0.2,
-          textShadow: "0 1px 2px rgba(0,0,0,0.14)",
-          touchAction: "none",
-          userSelect: "none",
-          WebkitUserSelect: "none",
-        }}
+        className={`glass-gloss voice-mic${isRecording ? " recording" : ""}`}
       >
         <MicIcon />
         <span>{micLabel}</span>
       </button>
 
-      <div
-        aria-live="polite"
-        className="text-white"
-        style={{
-          minHeight: 120,
-          padding: "16px 18px",
-          background: "rgba(255,255,255,0.10)",
-          border: "0.5px solid var(--lg-glass-border)",
-          backdropFilter: "blur(22px) saturate(180%)",
-          WebkitBackdropFilter: "blur(22px) saturate(180%)",
-          borderRadius: "var(--lg-radius)",
-          fontSize: 16,
-          lineHeight: 1.5,
-          letterSpacing: -0.1,
-          textShadow: "0 1px 2px rgba(0,0,0,0.14)",
-          whiteSpace: "pre-wrap",
-        }}
-      >
+      <div aria-live="polite" className="voice-transcript">
         {transcript ? (
           <span>{transcript}</span>
         ) : (
@@ -208,19 +170,7 @@ export default function VoiceInput({ screen, nextHref }: VoiceInputProps) {
         type="button"
         onClick={handleContinue}
         disabled={saving}
-        className="glass-gloss text-white transition active:scale-[0.985] disabled:opacity-60"
-        style={{
-          padding: "18px 22px",
-          background: "rgba(255,255,255,0.18)",
-          border: "1px solid rgba(255,255,255,0.55)",
-          backdropFilter: "blur(22px) saturate(180%)",
-          WebkitBackdropFilter: "blur(22px) saturate(180%)",
-          borderRadius: "var(--lg-radius)",
-          fontSize: 17,
-          fontWeight: 600,
-          letterSpacing: -0.2,
-          textShadow: "0 1px 2px rgba(0,0,0,0.14)",
-        }}
+        className="glass-gloss voice-continue"
       >
         {saving ? "Saving…" : screen.componentProps.continueButtonText}
       </button>

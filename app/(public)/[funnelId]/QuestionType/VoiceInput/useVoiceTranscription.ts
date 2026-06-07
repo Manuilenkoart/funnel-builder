@@ -36,13 +36,36 @@ export interface VoiceTranscription {
 
 async function decodeToMono16k(blob: Blob): Promise<Float32Array> {
   const arrayBuffer = await blob.arrayBuffer();
-  const ctx = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE });
+
+  // Decode at the browser's native rate. Safari ignores a requested
+  // AudioContext sampleRate, so we never rely on it — we resample below.
+  const decodeCtx = new AudioContext();
+  let decoded: AudioBuffer;
   try {
-    const decoded = await ctx.decodeAudioData(arrayBuffer);
-    return decoded.getChannelData(0);
+    decoded = await decodeCtx.decodeAudioData(arrayBuffer);
   } finally {
-    await ctx.close();
+    await decodeCtx.close();
   }
+
+  if (
+    decoded.sampleRate === TARGET_SAMPLE_RATE &&
+    decoded.numberOfChannels === 1
+  ) {
+    return decoded.getChannelData(0);
+  }
+
+  // Down-mix to mono and resample to 16 kHz — the rate Whisper expects.
+  const frames = Math.max(
+    1,
+    Math.round(decoded.duration * TARGET_SAMPLE_RATE),
+  );
+  const offline = new OfflineAudioContext(1, frames, TARGET_SAMPLE_RATE);
+  const source = offline.createBufferSource();
+  source.buffer = decoded;
+  source.connect(offline.destination);
+  source.start();
+  const rendered = await offline.startRendering();
+  return rendered.getChannelData(0);
 }
 
 export function useVoiceTranscription(): VoiceTranscription {
@@ -110,7 +133,9 @@ export function useVoiceTranscription(): VoiceTranscription {
         stream.getTracks().forEach((t) => t.stop());
         setPhase("transcribing");
 
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
         if (blob.size === 0) {
           setPhase("ready");
           return;

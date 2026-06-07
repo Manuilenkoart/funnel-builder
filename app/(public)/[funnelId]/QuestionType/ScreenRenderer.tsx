@@ -19,7 +19,7 @@ export default function ScreenRenderer({ screen, nextHref }: ScreenRendererProps
       {subtitle ? (
         <p className="glass-sub mb-8">{subtitle.text}</p>
       ) : (
-        <div className='"mb-8"' />
+        <div className="mb-8" />
       )}
 
       {screen.type === QuestionType.rowList && (

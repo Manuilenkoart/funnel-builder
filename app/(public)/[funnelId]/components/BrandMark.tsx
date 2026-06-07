@@ -26,7 +26,7 @@ export default function BrandMark() {
           </svg>
         </span>
       </span>
-      copymind
+      funnel builder
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
 
 import { funnelsConfig } from '@/app/config/funnels';
 import { getUtmSource } from '@/app/lib/source';
@@ -36,11 +37,15 @@ export default async function FunnelScreenPage({
   const cookieStore = await cookies();
   const userId = cookieStore.get('userId')?.value;
   if (userId) {
-    try {
-      await recordEvent(userId, funnelId, 'page_view', screenIndexStr, utmSource);
-    } catch (err) {
-      console.error('[tracking] recordPageView failed:', err);
-    }
+    // Defer tracking until after the response is sent so the four DB
+    // round-trips in recordEvent don't block this screen's TTFB.
+    after(async () => {
+      try {
+        await recordEvent(userId, funnelId, 'page_view', screenIndexStr, utmSource);
+      } catch (err) {
+        console.error('[tracking] recordPageView failed:', err);
+      }
+    });
   }
 
   const screen = config.screens[screenIndex];

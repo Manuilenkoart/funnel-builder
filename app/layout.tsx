@@ -11,8 +11,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "copymind",
-  description: "Your personal AI twin",
+  title: "funnel builder",
+  description: "Your personal funnel",
 };
 
 export default function RootLayout({

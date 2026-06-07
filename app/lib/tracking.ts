@@ -4,7 +4,7 @@ export async function recordEvent(
   userId: string,
   funnelId: string,
   name: 'page_view' | 'buy',
-  questionId: string | null,
+  questionId: string,
   utmSource: string
 ): Promise<void> {
   const supabase = createServerClient();
