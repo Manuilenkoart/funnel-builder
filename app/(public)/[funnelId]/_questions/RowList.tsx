@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { RowListQuestionConfig } from '@/app/types/funnel';
+import { RowListQuestionConfig } from "@/app/types/funnel";
 
 interface RowListProps {
   screen: RowListQuestionConfig;
@@ -31,21 +31,23 @@ export default function RowList({ screen, nextHref }: RowListProps) {
             onClick={() => handleSelect(option.text)}
             className="glass-gloss relative flex items-center justify-between overflow-hidden text-left text-white transition active:scale-[0.985]"
             style={{
-              padding: '18px 22px',
-              background: isSelected ? 'rgba(255,255,255,0.30)' : 'var(--lg-glass-bg)',
+              padding: "18px 22px",
+              background: isSelected
+                ? "rgba(255,255,255,0.30)"
+                : "var(--lg-glass-bg)",
               border: `${isSelected ? 1.5 : 0.5}px solid ${
-                isSelected ? 'rgba(255,255,255,0.75)' : 'var(--lg-glass-border)'
+                isSelected ? "rgba(255,255,255,0.75)" : "var(--lg-glass-border)"
               }`,
-              backdropFilter: 'blur(22px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(22px) saturate(180%)',
+              backdropFilter: "blur(22px) saturate(180%)",
+              WebkitBackdropFilter: "blur(22px) saturate(180%)",
               boxShadow:
-                'inset 0 0.5px 0 rgba(255,255,255,0.55), inset 0 -0.5px 0 rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.10)',
-              borderRadius: 'var(--lg-radius)',
+                "inset 0 0.5px 0 rgba(255,255,255,0.55), inset 0 -0.5px 0 rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.10)",
+              borderRadius: "var(--lg-radius)",
               fontSize: 17,
               fontWeight: isSelected ? 600 : 500,
               letterSpacing: -0.2,
-              textShadow: '0 1px 2px rgba(0,0,0,0.14)',
-              transform: isSelected ? 'scale(0.985)' : undefined,
+              textShadow: "0 1px 2px rgba(0,0,0,0.14)",
+              transform: isSelected ? "scale(0.985)" : undefined,
             }}
           >
             <span>{option.text}</span>
@@ -53,9 +55,9 @@ export default function RowList({ screen, nextHref }: RowListProps) {
               className="flex size-[22px] items-center justify-center rounded-full transition"
               style={{
                 border: `1.5px solid ${
-                  isSelected ? '#fff' : 'rgba(255,255,255,0.45)'
+                  isSelected ? "#fff" : "rgba(255,255,255,0.45)"
                 }`,
-                background: isSelected ? '#fff' : 'transparent',
+                background: isSelected ? "#fff" : "transparent",
               }}
             >
               {isSelected ? (

@@ -8,11 +8,11 @@ import { recordEvent } from "@/app/lib/tracking";
 import { withParams } from "@/app/lib/url";
 import { QuestionType } from "@/app/types/funnel";
 
-import Motif from "../components/Motif";
-import ProgressBar from "../components/ProgressBar";
-import Shell from "../components/Shell";
-import ScreenRenderer from "../QuestionType/ScreenRenderer";
-import VoicePreloader from "../QuestionType/VoiceInput/VoicePreloader";
+import Motif from "../_components/Motif";
+import ProgressBar from "../_components/ProgressBar";
+import Shell from "../_components/Shell";
+import ScreenRenderer from "../_questions/ScreenRenderer";
+import VoicePreloader from "../_questions/voice-input/VoicePreloader";
 
 export default async function FunnelScreenPage({
   params,

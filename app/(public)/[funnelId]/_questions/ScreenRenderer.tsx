@@ -2,7 +2,7 @@ import { QuestionConfig, QuestionType } from "@/app/types/funnel";
 
 import EmailForm from "./EmailForm";
 import RowList from "./RowList";
-import { VoiceInput } from "./VoiceInput";
+import { VoiceInput } from "./voice-input";
 
 interface ScreenRendererProps {
   screen: QuestionConfig;
@@ -10,7 +10,10 @@ interface ScreenRendererProps {
   prevHref: string | null;
 }
 
-export default function ScreenRenderer({ screen, nextHref }: ScreenRendererProps) {
+export default function ScreenRenderer({
+  screen,
+  nextHref,
+}: ScreenRendererProps) {
   const subtitle = screen.subtitle;
 
   return (

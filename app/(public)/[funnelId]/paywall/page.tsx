@@ -5,8 +5,8 @@ import { funnelsConfig } from "@/app/config/funnels";
 import { getUtmSource } from "@/app/lib/source";
 import { recordEvent } from "@/app/lib/tracking";
 
-import Motif from "../components/Motif";
-import Shell from "../components/Shell";
+import Motif from "../_components/Motif";
+import Shell from "../_components/Shell";
 import PaywallChoice from "./PaywallChoice";
 
 export default async function FunnelPaywallPage({
@@ -42,10 +42,7 @@ export default async function FunnelPaywallPage({
         </div>
 
         <h1 className="glass-heading compact mb-2.5">Begin your practice</h1>
-        <p
-          className="glass-sub mb-5"
-          style={{ fontSize: 14 }}
-        >
+        <p className="glass-sub mb-5" style={{ fontSize: 14 }}>
           7-day free trial. Cancel anytime.
         </p>
 
