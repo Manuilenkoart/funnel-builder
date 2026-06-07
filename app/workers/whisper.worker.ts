@@ -5,26 +5,34 @@ import {
   pipeline,
 } from "@huggingface/transformers";
 
-const MODEL_ID = "onnx-community/whisper-tiny.en";
+import type { WorkerInbound } from "../lib/whisper/messages";
+import { WHISPER_DTYPE, WHISPER_MODEL_ID } from "../lib/whisper/model";
 
 let transcriberPromise: Promise<AutomaticSpeechRecognitionPipeline> | null =
   null;
 
+async function loadTranscriber(): Promise<AutomaticSpeechRecognitionPipeline> {
+  try {
+    return (await pipeline("automatic-speech-recognition", WHISPER_MODEL_ID, {
+      dtype: WHISPER_DTYPE,
+      progress_callback: (data: unknown) => {
+        self.postMessage({ type: "model-progress", data });
+      },
+    })) as AutomaticSpeechRecognitionPipeline;
+  } catch (err) {
+    // Reset so a later warmup can retry the load instead of forever
+    // replaying this rejection from a memoized promise.
+    transcriberPromise = null;
+    throw err;
+  }
+}
+
 function getTranscriber() {
-  transcriberPromise ??= pipeline("automatic-speech-recognition", MODEL_ID, {
-    dtype: "bnb4",
-    progress_callback: (data: unknown) => {
-      self.postMessage({ type: "model-progress", data });
-    },
-  }) as Promise<AutomaticSpeechRecognitionPipeline>;
+  transcriberPromise ??= loadTranscriber();
   return transcriberPromise;
 }
 
-type InboundMessage =
-  | { type: "warmup" }
-  | { type: "transcribe"; audio: Float32Array };
-
-self.addEventListener("message", async (event: MessageEvent<InboundMessage>) => {
+self.addEventListener("message", async (event: MessageEvent<WorkerInbound>) => {
   const msg = event.data;
 
   try {

@@ -1,20 +1,20 @@
-import { createServerClient } from './supabase/server';
+import { createServerClient } from "./supabase/server";
 
 export async function recordEvent(
   userId: string,
   funnelId: string,
-  name: 'page_view' | 'buy',
-  questionId: string | null,
-  utmSource: string
+  name: "page_view" | "buy",
+  questionId: string,
+  utmSource: string,
 ): Promise<void> {
   const supabase = createServerClient();
   const now = new Date().toISOString();
 
   await supabase
-    .from('users')
-    .upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true });
+    .from("users")
+    .upsert({ id: userId }, { onConflict: "id", ignoreDuplicates: true });
 
-  await supabase.from('user_attribution').upsert(
+  await supabase.from("user_attribution").upsert(
     {
       user_id: userId,
       first_source: utmSource,
@@ -22,15 +22,15 @@ export async function recordEvent(
       last_source: utmSource,
       last_seen_at: now,
     },
-    { onConflict: 'user_id', ignoreDuplicates: true }
+    { onConflict: "user_id", ignoreDuplicates: true },
   );
 
   await supabase
-    .from('user_attribution')
+    .from("user_attribution")
     .update({ last_source: utmSource, last_seen_at: now })
-    .eq('user_id', userId);
+    .eq("user_id", userId);
 
-  await supabase.from('events').insert({
+  await supabase.from("events").insert({
     name,
     funnel_id: funnelId,
     question_id: questionId,
@@ -41,9 +41,12 @@ export async function recordEvent(
 
 export async function updateUserEmail(
   userId: string,
-  email: string
+  email: string,
 ): Promise<void> {
   const supabase = createServerClient();
-  const { error } = await supabase.from('users').update({ email }).eq('id', userId);
+  const { error } = await supabase
+    .from("users")
+    .update({ email })
+    .eq("id", userId);
   if (error) throw error;
 }
