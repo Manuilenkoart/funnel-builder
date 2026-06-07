@@ -4,10 +4,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { saveVoiceTranscript } from "@/app/actions/transcripts";
+import { WHISPER_MODEL_LABEL } from "@/app/lib/whisper/model";
 import { VoiceQuestionConfig } from "@/app/types/funnel";
 
 import { useVoiceTranscription, VoicePhase } from "./useVoiceTranscription";
-import { WHISPER_MODEL_LABEL } from "./whisperClient";
 
 interface VoiceInputProps {
   screen: VoiceQuestionConfig;
@@ -91,10 +91,12 @@ export default function VoiceInput({ screen, nextHref }: VoiceInputProps) {
     errorMsg,
     recordHandlers,
     clearTranscript,
+    retry,
   } = useVoiceTranscription();
 
   const isRecording = phase === "recording";
   const isBusy = phase === "loading-model" || phase === "transcribing";
+  const isError = phase === "error";
   const micLabel = getMicLabel(
     phase,
     screen.componentProps.recordButtonText,
@@ -129,7 +131,7 @@ export default function VoiceInput({ screen, nextHref }: VoiceInputProps) {
     <div className="flex flex-col gap-4">
       <button
         type="button"
-        {...recordHandlers}
+        {...(isError ? { onClick: retry } : recordHandlers)}
         onContextMenu={(e) => e.preventDefault()}
         disabled={isBusy}
         aria-label={micLabel}
@@ -148,7 +150,7 @@ export default function VoiceInput({ screen, nextHref }: VoiceInputProps) {
         )}
       </div>
 
-      {phase === "error" && errorMsg ? (
+      {errorMsg ? (
         <p className="px-1 text-sm text-red-300/90">{errorMsg}</p>
       ) : null}
 

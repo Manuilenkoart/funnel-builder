@@ -1,25 +1,11 @@
 "use client";
 
-export const WHISPER_MODEL_LABEL = "whisper-tiny.en-bnb4";
-
-export type WhisperEvent =
-  | { type: "ready" }
-  | { type: "transcript"; text: string }
-  | { type: "error"; message: string }
-  | { type: "progress"; percent: number };
-
-type ProgressData = {
-  status?: string;
-  file?: string;
-  loaded?: number;
-  total?: number;
-};
-
-type WorkerOutbound =
-  | { type: "ready" }
-  | { type: "transcript"; text: string }
-  | { type: "error"; message: string }
-  | { type: "model-progress"; data: ProgressData };
+import type {
+  ProgressData,
+  WhisperEvent,
+  WorkerInbound,
+  WorkerOutbound,
+} from "@/app/lib/whisper/messages";
 
 let worker: Worker | null = null;
 let ready = false;
@@ -90,19 +76,28 @@ function getWorker(): Worker | null {
     }
   });
 
-  worker.postMessage({ type: "warmup" });
+  warmup();
   return worker;
+}
+
+function warmup() {
+  const message: WorkerInbound = { type: "warmup" };
+  worker?.postMessage(message);
 }
 
 export function preloadWhisper(): void {
   getWorker();
 }
 
-export function sendToWhisper(message: { type: "transcribe"; audio: Float32Array }): void {
+export function sendToWhisper(
+  message: Extract<WorkerInbound, { type: "transcribe" }>,
+): void {
   getWorker()?.postMessage(message);
 }
 
-export function subscribeWhisper(fn: (event: WhisperEvent) => void): () => void {
+export function subscribeWhisper(
+  fn: (event: WhisperEvent) => void,
+): () => void {
   listeners.add(fn);
   return () => {
     listeners.delete(fn);
@@ -115,4 +110,25 @@ export function isWhisperReady(): boolean {
 
 export function getCurrentProgress(): number {
   return lastPercent;
+}
+
+// Re-warm after a failure. If the model already loaded, the worker resolves
+// immediately; if its load was reset by an earlier failure, it retries.
+export function retryWhisper(): void {
+  ready = false;
+  lastPercent = 0;
+  fileProgress.clear();
+  getWorker();
+  warmup();
+}
+
+// Tear the worker down and clear all module state. Primarily for tests and
+// teardown — production keeps the singleton alive across funnel navigation.
+export function resetWhisper(): void {
+  worker?.terminate();
+  worker = null;
+  ready = false;
+  lastPercent = 0;
+  fileProgress.clear();
+  listeners.clear();
 }
