@@ -136,12 +136,14 @@ describe('saveVoiceTranscript', () => {
   describe('database errors', () => {
     it('returns a generic error when the upsert throws', async () => {
       mockUpsert.mockResolvedValue({ error: new Error('unique violation') });
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const result = await saveVoiceTranscript({
         funnelId: 'quiz-1',
         questionId: '1',
         text: 'hi',
       });
       expect(result).toEqual({ ok: false, error: 'Failed to save transcript' });
+      consoleSpy.mockRestore();
     });
   });
 });

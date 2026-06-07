@@ -227,12 +227,16 @@ describe('saveEmail', () => {
   describe('database errors', () => {
     it('returns a generic error when the email lookup throws', async () => {
       mockMaybeSingle.mockRejectedValue(new Error('connection lost'));
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(await saveEmail('user@example.com')).toEqual({ ok: false, error: 'Failed to save email' });
+      consoleSpy.mockRestore();
     });
 
     it('returns a generic error when the email update throws', async () => {
       mockEq.mockRejectedValue(new Error('unique violation'));
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(await saveEmail('new@example.com')).toEqual({ ok: false, error: 'Failed to save email' });
+      consoleSpy.mockRestore();
     });
   });
 });
