@@ -33,12 +33,14 @@ export function ClarityScript({
     }
 
     // Initialize Clarity
-    (function (c: unknown, l: Document, a: string, r: string, i: string) {
-      const w = c as Record<string, unknown>;
-      w[a] =
-        w[a] ||
+    (function (c: Window, l: Document, a: string, r: string, i: string) {
+      (c as Record<string, unknown>)[a] =
+        ((c as Record<string, unknown>)[a] as unknown) ||
         function (...args: unknown[]) {
-          const fn = w[a] as Record<string, unknown>;
+          const fn = (c as Record<string, unknown>)[a] as Record<
+            string,
+            unknown
+          >;
           const q = (fn.q as unknown[]) || [];
           q.push(...args);
           fn.q = q;
