@@ -6,6 +6,7 @@ export async function recordEvent(
   name: "page_view" | "buy",
   questionId: string,
   utmSource: string,
+  funnelVersionId: string | null = null,
 ): Promise<void> {
   const supabase = createServerClient();
   const now = new Date().toISOString();
@@ -36,6 +37,7 @@ export async function recordEvent(
     question_id: questionId,
     user_id: userId,
     utm_source: utmSource,
+    funnel_version_id: funnelVersionId,
   });
 }
 

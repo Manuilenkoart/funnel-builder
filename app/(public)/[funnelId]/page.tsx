@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from "next/navigation";
 
-import { withParams } from '@/app/lib/url';
+import { funnelExists } from "@/app/lib/funnels/read";
+import { withParams } from "@/app/lib/url";
 
 export default async function FunnelLandingPage({
   params,
@@ -11,5 +12,6 @@ export default async function FunnelLandingPage({
 }) {
   const { funnelId } = await params;
   const sp = await searchParams;
+  if (!(await funnelExists(funnelId))) notFound();
   redirect(withParams(`/${funnelId}/0`, sp));
 }
