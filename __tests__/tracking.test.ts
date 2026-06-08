@@ -76,7 +76,22 @@ describe("recordEvent", () => {
       question_id: "0",
       user_id: "user-abc",
       utm_source: "google",
+      funnel_version_id: null,
     });
+  });
+
+  it("writes funnel_version_id on the event", async () => {
+    await recordEvent(
+      "user-abc",
+      "quiz-1",
+      "page_view",
+      "0",
+      "google",
+      "ver-1",
+    );
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ funnel_version_id: "ver-1" }),
+    );
   });
 
   it('records "Direct" when caller passes "Direct"', async () => {
@@ -101,6 +116,7 @@ describe("recordEvent", () => {
       question_id: "paywall",
       user_id: "user-abc",
       utm_source: "facebook",
+      funnel_version_id: null,
     });
   });
 

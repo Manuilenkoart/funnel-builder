@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 
-import { funnelsConfig } from "@/app/config/funnels";
+import { getFunnelForUser } from "@/app/lib/funnels/read";
 import { getUtmSource } from "@/app/lib/source";
 import { recordEvent } from "@/app/lib/tracking";
 import { withParams } from "@/app/lib/url";
@@ -23,9 +23,12 @@ export default async function FunnelScreenPage({
 }) {
   const { funnelId, screenIndex: screenIndexStr } = await params;
   const sp = await searchParams;
-  const config = funnelsConfig[funnelId as keyof typeof funnelsConfig];
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
 
-  if (!config) notFound();
+  const result = await getFunnelForUser(funnelId, userId);
+  if (!result) notFound();
+  const { config, versionId } = result;
 
   const screenIndex = parseInt(screenIndexStr, 10);
   if (
@@ -38,8 +41,6 @@ export default async function FunnelScreenPage({
 
   const utmSource = getUtmSource(sp);
 
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("userId")?.value;
   if (userId) {
     // Defer tracking until after the response is sent so the four DB
     // round-trips in recordEvent don't block this screen's TTFB.
@@ -51,6 +52,7 @@ export default async function FunnelScreenPage({
           "page_view",
           screenIndexStr,
           utmSource,
+          versionId,
         );
       } catch (err) {
         console.error("[tracking] recordPageView failed:", err);

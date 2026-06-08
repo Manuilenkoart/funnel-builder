@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { funnelsConfig } from "@/app/config/funnels";
+import { getFunnelForUser } from "@/app/lib/funnels/read";
 import { getUtmSource } from "@/app/lib/source";
 import { recordEvent } from "@/app/lib/tracking";
 
@@ -18,17 +18,25 @@ export default async function FunnelPaywallPage({
 }) {
   const { funnelId } = await params;
   const sp = await searchParams;
-  const config = funnelsConfig[funnelId as keyof typeof funnelsConfig];
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
 
-  if (!config) notFound();
+  const result = await getFunnelForUser(funnelId, userId);
+  if (!result) notFound();
+  const { versionId } = result;
 
   const utmSource = getUtmSource(sp);
 
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("userId")?.value;
   if (userId) {
     try {
-      await recordEvent(userId, funnelId, "page_view", "paywall", utmSource);
+      await recordEvent(
+        userId,
+        funnelId,
+        "page_view",
+        "paywall",
+        utmSource,
+        versionId,
+      );
     } catch (err) {
       console.error("[tracking] recordPageView failed:", err);
     }
